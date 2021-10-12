@@ -26,3 +26,9 @@ The primary aim of the data product is to quantify seasonal and spatial variatio
 3. **GVL_WaterChem_CALC.R** - Code to check data quality
       
       Input data table - GVL_WaterChem_RAW.csv
+
+
+**Data Analysis Scripts.**
+1. **GVL_ANALYSIS_SUBMIT.R** - All analyses used to reproduce the results, tables, and figures in our manuscript "Sediment phosphorus speciation controls hot spots and hot moments of internal loading in a temperate reservoir"
+
+      Input data tables - GVL_Incubation_Sum.csv, GVL_WaterChem_RAW.csv, GVL_SedimentP_Sum.csv, GVL_SedTP_Sum.csv, GVL_bathymetry.shp, GVL_sites.csv, GVL_SedimentAreaCALC.csv
