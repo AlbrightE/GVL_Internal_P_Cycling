@@ -1,0 +1,4 @@
+site,contour_description,top_depth_m,bottom_depth_m,top_perimeter_m,bottom_perimeter_m,top_area_m2,bottom_area_m2
+shallow,area between 4' and 12' depth contours,1.2,3.6,12204.7061,6792.339173,1194095.737,601151.949
+middle,area between 12' and 18' depth contours,3.6,5.6,6792.339173,3551.885741,601151.949,218292.3904
+deep,area between 18' and 24' depth contours,5.6,7.3,3551.885741,103.9170516,218292.3904,836.7577661
