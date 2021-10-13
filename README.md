@@ -8,7 +8,7 @@ The primary aim of the data product is to quantify seasonal and spatial variatio
 1. ***Ellen A. Albright*** UW-Madison. ORCID ID 0000-0002-6226-9158. Contact: ealbright2@wisc.edu
 2. ***Dr. Grace M. Wilkinson*** UW-Madison. ORCID ID 0000-0003-4051-2249.
 
-**Additional Metadata** - Available in the "GVL_Metadata.XML" file in the main branch of the repository. Written in Ecological Metadata Language (EML). Includes variable, unit, and code information for all data tables.
+**Additional Metadata** - Available in the "GVL P Cycling 2019-2020 Metadata.XML" file in the main branch of the repository. Written in Ecological Metadata Language (EML). Includes variable, unit, and code information for all data tables.
 
 **Data Cleaning Scripts.**
 1. **GVL_Incubation_CALC.R** - Calculations to determine daily sediment P flux rates and code to check data quality
