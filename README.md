@@ -8,6 +8,9 @@ The primary aim of the data product is to quantify seasonal and spatial variatio
 1. ***Ellen A. Albright*** UW-Madison. ORCID ID 0000-0002-6226-9158. Contact: ealbright2@wisc.edu
 2. ***Dr. Grace M. Wilkinson*** UW-Madison. ORCID ID 0000-0003-4051-2249.
 
+**Data Citation**
+Albright EA, Wilkinson GM. 2021. Spatiotemporal variation in internal phosphorus loading, sediment characteristics, water column chemistry, and thermal mixing in a hypereutrophic reservoir in southwest Iowa, USA (2019-2020) ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/d3a70c1f0d534cca8bdebd7f7483ef38  (Accessed 2021-10-14).
+
 **Additional Metadata** - Available in the "GVL P Cycling 2019-2020 Metadata.XML" file in the main branch of the repository. Written in Ecological Metadata Language (EML). Includes variable, unit, and code information for all data tables.
 
 **Data Cleaning Scripts.**
