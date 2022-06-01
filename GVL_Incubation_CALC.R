@@ -460,7 +460,8 @@ dat2<-dat %>%
   filter(!sample_id %in% c("C20041040401","C20041041401","C20041040402","C20041041402","C20041040403","C20041041403")) %>%
   filter(!sample_id %in% c("C20041227108","C20041227109")) %>% 
   filter(!sample_id %in% c("C1904120501o1")) %>% 
-  filter(!site %in% c("2","3","5","6"))
+  filter(!site %in% c("2","3","5","6")) %>% 
+  filter(!year %in% c('2019'))
 
 # Write final data table
 write.csv(dat2,file="GVL_Incubation_Tidy.csv")
@@ -483,4 +484,56 @@ plot(density(test$mean_Prr))
 plot(density(test2$mean_Prr))
 
 
+#### VIZ for SI of MS - how well incubation conditions matched GVL temperature and DO ---------------
+dat2$site.f<-as.factor(dat2$site)
+dat2$n[dat2$site=="4" & dat2$month =="February"]<-9
+dat2$n[dat2$month !="Febraury"]<-12
+dat2$n[dat2$site=="1" & dat2$month =="August"]<-10
 
+dat2_sum<-dat2 %>% 
+  mutate(month=factor(month,levels=c("February","April","June","August","October"))) %>% 
+  mutate(site.f=factor(site,levels=c("1","10","4"))) %>% 
+  group_by(month, site.f) %>% 
+  mutate(hypo_temp = mean(hypo_temp_c), hypo_DO = mean(hypo_DO_mgL),
+         sem_temp_core=(sd(temp_c))/sqrt(n), mean_temp_core=mean(temp_c),
+         sem_DO_core=(sd(DO_mgL))/sqrt(n),mean_DO_core=mean(DO_mgL))%>% 
+  select(month,site.f,hypo_temp,mean_temp_core,sem_temp_core,hypo_DO,mean_DO_core,sem_DO_core,) %>% 
+  slice(n=1) %>% 
+  ungroup()
+write.csv(dat2_sum, "incubationQAQC_SItable.csv",row.names = FALSE)
+
+tempQAQC<-ggplot(data=dat2, aes(x=hypo_temp_c, y=temp_c))+
+  geom_point(aes(shape=month, fill=site.f,color=site.f),alpha=0.5,size=4)+
+  scale_fill_manual(values=c("#1B9E77","#D95F02","#E7298A"),
+                     name="Sampling Site",
+                     labels=c("Shallow","Intermediate","Deep"))+
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"),
+                    name="Sampling Site",
+                    labels=c("Shallow","Intermediate","Deep"))+
+  scale_shape_manual(values=c(21,24,22,23,25))+
+  ylim(0,30)+xlim(0,30)+
+  geom_abline(slope=1, intercept=0)+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  xlab("Bottom Water Temperature (°C)")+ylab("Core Incubation Temperature (°C)") +theme(axis.text.x=element_text(color="black",size=9),axis.title.x=element_text(size=11))+
+  theme(legend.title=element_blank(), legend.position = "right",legend.text = element_text(size=10))
+
+doQAQC<-ggplot(data=dat2, aes(x=hypo_DO_mgL, y=DO_mgL))+
+  geom_point(aes(shape=month, fill=site.f,color=site.f),alpha=0.5,size=4)+
+  scale_fill_manual(values=c("#1B9E77","#D95F02","#E7298A"),
+                    name="Sampling Site",
+                    labels=c("Shallow","Intermediate","Deep"))+
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"),
+                     name="Sampling Site",
+                     labels=c("Shallow","Intermediate","Deep"))+
+  scale_shape_manual(values=c(21,24,22,23,25))+
+  ylim(0,15)+xlim(0,15)+
+  geom_abline(slope=1, intercept=0)+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  xlab(bquote("Bottom Water DO (mg"*~L^-1*")"))+ylab(bquote("Core Incubation DO (mg"*~L^-1*")")) +theme(axis.text.x=element_text(color="black",size=9),axis.title.x=element_text(size=11))+
+  theme(legend.title=element_blank(), legend.position = "right",legend.text = element_text(size=10))
+
+library(gridExtra)
+library(cowplot)
+
+incubationQAQC<-grid.arrange(tempQAQC, doQAQC, nrow=2)
+ggsave("incubationQAQC.png", incubationQAQC, width=5, height=7, unit="in", dpi=300)
