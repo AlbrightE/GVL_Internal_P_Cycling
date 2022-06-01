@@ -1,10 +1,14 @@
-# Project: Spatiotemporal Variation in Internal P Loading in a Hypereutrophic Reservoir (GVL) - Ecosystems
-# Last Modified 12 October 2021
+# Project: Spatiotemporal Variation in Internal P Loading in a Hypereutrophic Reservoir (GVL) - Ecosphere
+# Last Modified 1 June 2022
 # Contributers: Ellen Albright, Grace Wilkinson
 # Description: The following script details all analyses and figures for our manuscript: 
-#     "Sediment phosphorus speciation controls hot spots and hot moments of internal loading in a temperate reservoir"
+#     "Sediment phosphorus composition controls hot spots and hot moments of internal loading in a temperate reservoir"
 
-# Data citation: 
+# Manuscript citation:
+# Albright EA, Wilkinson GM. (In Press). Sediment phosphorus composition controls hot spots and hot moments of internal loading in a temperate reservoir. Ecosphere.
+
+# Data citation:
+# Albright EA, Wilkinson GM. 2021. Spatiotemporal variation in internal phosphorus loading, sediment characteristics, water column chemistry, and thermal mixing in a hypereutrophic reservoir in southwest Iowa, USA (2019-2020) ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/d3a70c1f0d534cca8bdebd7f7483ef38  (Accessed 2021-10-14).
 
 # The code can be run with the following datasets:
 # "GVL_Incubation_Sum.csv" - Sediment Core Incubation, Summarized Data, Green Valley Lake (2019-2020)
@@ -51,31 +55,33 @@ library(cowplot) #needed to make site map with inset map
 
 ### OVERVIEW OF SCRIPT ORGANIZATION ### ------------------------------------------------------------------------------------------------------------------------------------
 # PART 1: Spatiotemporal variation in water column chemistry and sediment P flux rates
-#      1a. Summarize mean flux rate and standard error of the mean across replicate cores for each site and event (Table S2)
+#      1a. Summarize mean flux rate and standard error of the mean across replicate cores for each site and event (Table S3)
 #      1b. Plot timeseries of sediment P flux rates and hypolimnetic TP and SRP (Figure 2)
-#      1c. Explore epi- and hypolimnetic P patterns over time (2014, 2015, 2019, 2020) (Figure S1)
+#      1c. Explore epi- and hypolimnetic P patterns over time (2014, 2015, 2019, 2020) (Figure S2)
 # PART 2: Explore hot spots and hot moments of sediment P release
-#      2a. Visualize the P flux rate distribution and identify outliers (Figure S2)
-#      2b. Visualize the P flux distribution by site and sampling event (Figure S3)
-#      2c. Quantify the distribution skew, leave-one-out analysis (Table S3)
+#      2a. Visualize the P flux rate distribution and identify outliers (Figure S3)
+#      2b. Visualize the P flux distribution by site and sampling event (Figure S4)
+#      2c. Quantify the distribution skew, leave-one-out analysis (Table S4)
 # PART 3: Sediment P flux rates and dissolved oxygen status at the sediment-water interface (Figure 3)
 # PART 4: Sediment P Pools
-#      4a. Mean sediment P composition by sampling site (Figure S4)
-#      4b. Timeseries of mobile sediment P fractions by sampling site (Figure 4)
-#      4c. CoDA of sediment P composition to understand variation over space and time (Figure 4)
-# PART 5: Scaling P fluxes across the lakebed to estimate load; Site map (Figure 5, Table 2, Figure 1)
+#      4a. Mean sediment P composition by sampling site (Figure 4, top panel)
+#      4b. Timeseries of mobile sediment P fractions by sampling site (Figure 4, bottom panels)
+#      4c. Timeseries of sediment total P by sampling site (FigureS5)
+#      46. CoDA of sediment P composition to understand variation over space and time (Figure 5)
+# PART 5: Scaling P fluxes across the lakebed to estimate load; Site map (Figure 6, Table 2, Figure 1)
 #      5a. Processing shapefile of bathymetric data
 #      5b. Site map (Figure 1)
 #      5c. P load estimation (Figure 5, Table 2)
+# PART 6: Summary of sediment physical data (Table S5)
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### PART 1 - SPATIOTEMPORAL VARIATION IN WATER COLUMN CHEMISTRY AND SEDIMENT P FLUX RATES (TABLE S2; FIGURES 2, S1) --------------------------------------------------------
+### PART 1 - SPATIOTEMPORAL VARIATION IN WATER COLUMN CHEMISTRY AND SEDIMENT P FLUX RATES (TABLE S3; FIGURES 2, S2) --------------------------------------------------------
 # READ IN DATA: Summarized sediment core incubation data (summarizes mean daily, aerial total P release rate for each sediment core over the course of the incubation)
 sum<-read.csv("GVL_Incubation_Sum.csv")
 # READ IN DATA: water chemistry data to plot hypolimnetic TP and SRP 
 waterchem <- read.csv("GVL_WaterChem_RAW.csv")
 
-### Part 1A - Summarize mean flux rate and standard error of the mean across replicate cores for each site and event (Table S2) ------------------
+### Part 1A - Summarize mean flux rate and standard error of the mean across replicate cores for each site and event (Table S3) ------------------
 
 # Investigate "sum" dataframe and add necessary columns for visualizations
 str(sum) # site number is read as integer, need to make a new column with sampling site as a factor
@@ -89,7 +95,7 @@ sum$doy[sum$month=="August"] <- 223
 sum$doy[sum$month=="October"] <- 298
 sum$doy[sum$month=="July"] <- 203
 
-# Further summarize the mean and standard error of the mean across replicate cores for each site and event (Values for TABLE S2)
+# Further summarize the mean and standard error of the mean across replicate cores for each site and event (Values for TABLE S3)
 sum2<-sum %>% 
   mutate(month=factor(month,levels=c("February","April","June","July","August","October"))) %>% 
   mutate(site.f=factor(site.f,levels=c("1","10","4"))) %>% 
@@ -109,7 +115,7 @@ shallow20wq <-dplyr::filter(waterchem, year=="2020"&siteID=="1"&depthID=="4") # 
 
 
 # FIGURE 2 - Sediment P Flux Rates and Hypolimnetic P (2020) 
-colors<-c("SRP_ugL"="gray30","TP_ugL"="gray15")
+colors<-c("SRP_ugL"="gray60","TP_ugL"="gray5")
 
 p1<-ggplot(data=shallow20) +
   geom_hline(yintercept=0,color="gray40",linetype = 'dotted',size=1) +
@@ -123,9 +129,9 @@ p1<-ggplot(data=shallow20) +
   theme(plot.margin=unit(c(0.1,0.1,0.1,0),"cm"))
 p2 <-ggplot(data=shallow20wq) +
   geom_line(aes(x=doy,y=SRP_ugL,color="SRP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=SRP_ugL),color="gray30",size=4,shape=19)+
+  geom_point(aes(x=doy,y=SRP_ugL),color="gray60",size=4,shape=19)+
   geom_line(aes(x=doy,y=TP_ugL,color="TP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=TP_ugL),color="gray15",size=4,shape=19)+
+  geom_point(aes(x=doy,y=TP_ugL),color="gray5",size=4,shape=19)+
   scale_color_manual(values=colors,
                      name=" ",
                      breaks=c("SRP_ugL","TP_ugL"),
@@ -133,7 +139,7 @@ p2 <-ggplot(data=shallow20wq) +
   theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+ 
   theme(legend.title=element_blank(), legend.position = c(0.25,0.8),legend.text = element_text(size=8),legend.key.size=unit(0.3,"cm"))+
   xlim(30,305) + ylim(0,400) + 
-  xlab("Day of Year") + ylab(bquote('Hypolimnetic P (µg ' *L^-1*')'))+
+  xlab("Day of Year") + ylab(bquote('Bottom Water P (µg ' *L^-1*')'))+
   theme(axis.text=element_text(color="black",size=8),axis.title=element_text(size=8))+
   theme(plot.margin=unit(c(0.1,0.1,0.1,0),"cm"))
 p3<-ggplot(data=mid20) +
@@ -148,9 +154,9 @@ p3<-ggplot(data=mid20) +
   theme(plot.margin=unit(c(0.1,0.1,0.1,-0.1),"cm"))
 p4 <-ggplot(data=mid20wq) +
   geom_line(aes(x=doy,y=SRP_ugL,color="SRP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=SRP_ugL),color="gray30",size=4,shape=17)+
+  geom_point(aes(x=doy,y=SRP_ugL),color="gray60",size=4,shape=17)+
   geom_line(aes(x=doy,y=TP_ugL,color="TP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=TP_ugL),color="gray15",size=4,shape=17)+
+  geom_point(aes(x=doy,y=TP_ugL),color="gray5",size=4,shape=17)+
   scale_color_manual(values=colors,
                      name=" ",
                      breaks=c("SRP_ugL","TP_ugL"),
@@ -172,9 +178,9 @@ p5<-ggplot(data=deep20) +
   theme(plot.margin=unit(c(0.1,0.1,0.1,-0.1),"cm"))
 p6 <-ggplot(data=deep20wq) +
   geom_line(aes(x=doy,y=SRP_ugL,color="SRP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=SRP_ugL),color="gray30",size=4,shape=15)+
+  geom_point(aes(x=doy,y=SRP_ugL),color="gray60",size=4,shape=15)+
   geom_line(aes(x=doy,y=TP_ugL,color="TP_ugL"),size=1.2) +
-  geom_point(aes(x=doy,y=TP_ugL),color="gray15",size=4,shape=15)+
+  geom_point(aes(x=doy,y=TP_ugL),color="gray5",size=4,shape=15)+
   scale_color_manual(values=colors,
                      name=" ",
                      breaks=c("SRP_ugL","TP_ugL"),
@@ -188,7 +194,7 @@ windows(height=3.3,width=6.5)
 plotfull<-grid.arrange(p1,p3,p5,p2,p4,p6,nrow=2) #need to name the grid.arrange to use in ggsave
 ggsave("GVL_2020_Prr_HypoP.png", plotfull, width=6.5, height=3.3, units="in", dpi=300) #FIGURE 2
 
-### Part 1C - Explore epi- and hypolimnetic P patterns over time (2014, 2015, 2019, 2020) (Figure S1) --------------------------------------------
+### Part 1C - Explore epi- and hypolimnetic P patterns over time (2014, 2015, 2019, 2020) (Figure S2) --------------------------------------------
 # Epilimnetic TP & SRP
 wq_surface_deepsite<-dplyr::filter(waterchem, siteID=="4",depthID=="1")
 wq_surface_deepsite$year.f<-as.factor(wq_surface_deepsite$year)
@@ -222,13 +228,13 @@ wq4<-ggplot(data=wq_bottom_deepsite, aes(x=doy, y=SRP_ugL, group=year.f))+
 plotfull_wq<-grid.arrange(wq1,wq2,wq3,wq4,nrow=2) #need to name the grid.arrange to use in ggsave
 ggsave("GVL_FigS1.png",plotfull_wq,width=8,height=8,units="in",dpi=300)
 
-### PART 2 - EXPLORE HOT SPOTS AND HOT MOMENTS OF SEDIMENT P RELEASE (Figures S2, S3; Table S3) ---------------------------------------------------------------------------
-### Part 2A - Visualize the P flux rate distribution and identify outliers (Figure S2) -----------------------------------------------------------
+### PART 2 - EXPLORE HOT SPOTS AND HOT MOMENTS OF SEDIMENT P RELEASE (Figures S3, S4; Table S4) ---------------------------------------------------------------------------
+### Part 2A - Visualize the P flux rate distribution and identify outliers (Figure S3) -----------------------------------------------------------
 
 # Subset "sum" data frame for 2020 sampling study year (data=sum, subset for 2020. all sites, all cores, whole year)
 sum20 <- dplyr::filter(sum,year=="2020")
 
-# Visualize boxplot and histogram of flux rate distribution, identify outliers (Figure S2)
+# Visualize boxplot and histogram of flux rate distribution, identify outliers (Figure S3)
 png("GVL_Incubation_Distribution.png",width=6,height=8,units="in",res=300)
 layout(mat = matrix(c(1,2),2,1, byrow=TRUE),  height = c(1,8)) # Layout to split the screen
 par(mar=c(0, 3.1, 1.1, 2.1))
@@ -238,26 +244,35 @@ hist(sum20$mean_Prr , breaks=20, prob=TRUE, col="#7F7F7F", las=1, border=F, main
 lines(density(sum$mean_Prr),lwd=3,col="#3A5750")
 dev.off()
 
-### Part 2B - Visualize the P flux distribution by site and sampling event (Figure S3) -----------------------------------------------------------
-pttrans=0.5 #transparency value for points
+### Part 2B - Visualize the P flux distribution by site and sampling event (Figure S4) -----------------------------------------------------------
+pttrans=1 #transparency value for points
 ptpal=brewer.pal(7,"Dark2")
 ptrgb<-col2rgb(ptpal)
 ptpal<-rgb(red=ptrgb[1,],green=ptrgb[2,],blue=ptrgb[3,],alpha=pttrans*255, maxColorValue = 255) #color palette for transparent points
 lnpal=brewer.pal(7,"Dark2") #color palette for solid lines
 
 sum_ordered<-sum %>% 
+  filter(year!="2019") %>% 
   mutate(month=factor(month,levels=c("February","April","June","August","October"))) %>% 
-  mutate(site.f=factor(site.f,levels=c("4","10","1"))) 
+  mutate(site.f=factor(site,levels=c("4","10","1"))) 
 
-dotplot<-ggplot(sum_ordered, aes(y=mean_Prr,x=site.f,shape=site.f,col=month,alpha=2))+
-  geom_jitter(position=position_jitter(0.1),cex=5)+coord_flip()+
+dotplot<-ggplot(sum_ordered, aes(y=mean_Prr,x=month,shape=site.f,col=site.f))+
+  geom_jitter(position=position_jitter(0.1),cex=5)+
   theme_classic(base_size=18)+
-  scale_color_manual(values=c(ptpal[4],ptpal[2],ptpal[5],ptpal[1],ptpal[3]))+
-  scale_shape_manual(values=c(15,17,16))+theme(axis.text=element_text(color="black",size=12),axis.title=element_text(size=14))+
-  labs(x=NULL,y='P Flux Rate (mg P' *m^-2~day^-1*')',cex=3)+theme(legend.position = "none")
-ggsave("GVL_FigS2.png",dotplot,width=10,height=8,units="in",dpi=300)
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"),
+                    name="Sampling Site",
+                    breaks=c(1,10,4),
+                    labels=c("Shallow","Intermediate Depth","Deep"))+
+  scale_shape_manual(values=c(16,17,15),
+                     name="Sampling Site",
+                     breaks=c(1,10,4),
+                     labels=c("Shallow","Intermediate Depth","Deep"))+
+  geom_hline(yintercept = 0, color="grey50", linetype="dashed", size=0.8)+
+  theme(axis.text=element_text(color="black",size=12),axis.title=element_text(size=14))+
+  labs(x=NULL,y='P Flux Rate (mg P' *m^-2~day^-1*')',cex=3)+theme(legend.position = "bottom")
+ggsave("GVL_FigS3_revised.png",dotplot,width=10,height=8,units="in",dpi=300)
 
-### Part 2C - Quantify the distribution skew, leave-one-out analysis (Table S3) ------------------------------------------------------------------
+### Part 2C - Quantify the distribution skew, leave-one-out analysis (Table S4) ------------------------------------------------------------------
 # Code adapted from: https://helleng.github.io/Data_Mgt_Analysis_and_Graphics_R/Data_Analysis/chap2.html 
 
 # DATA: Work with full incubation dataset, subset for 2020 ("sum" subset for year==2020) - already subset in Part 2a ("sum20")
@@ -387,13 +402,13 @@ DO_fig<-ggplot(data=sum_DO)+
 DO_fig
 ggsave("GVL_Figure4.png",DO_fig,width=4.75,height=4.5,units="in", dpi=300)
 
-### PART 4 - SEDIMENT P POOLS (Figure 4, S4) -----------------------------------------------------------------------------------------------------------------------------
+### PART 4 - SEDIMENT P POOLS (Figures 4-5, S5) -----------------------------------------------------------------------------------------------------------------------------
 # READ IN DATA: Sediment P Speciation, Summarized Data, Green Valley Lake (2020)
 sed_sum<-read.csv("GVL_SedimentP_Sum.csv")
 # READ IN DATA: Sediment Total P, Summarized Data, Green Valley Lake (2020)
 sed_tp<-read.csv("GVL_SedTP_Sum.csv")
 
-### Part 4A -  Mean sediment P composition by sampling site (Figure S4), visualized as a stacked barplot of sediment P speciation --------------
+### Part 4A -  Mean sediment P composition by sampling site (Figure 4, top panel), visualized as a stacked barplot of sediment P speciation --------------
 
 # calculate the average, annual sediment TP concentration by site
 sed_tp_sum <- sed_tp %>% 
@@ -420,23 +435,28 @@ sed_bar2 <- dplyr::filter(sed_bar2, !P_form=="annualmean_sedTP_ug") #remove tota
 sed_bar_3 <- sed_bar2 %>% 
   mutate(P_form=factor(P_form,levels=c("annual_looseP_ug","residP_ug","annual_orgP_ug","annual_AlP_ug","annual_redoxP_ug")))
 
+sed_bar_3$site.f[sed_bar_3$site=="1"]<-"Shallow"
+sed_bar_3$site.f[sed_bar_3$site=="10"]<-"Intermediate Depth"
+sed_bar_3$site.f[sed_bar_3$site=="4"]<-"Deep"
+
 # calculate abundance of each fraction as a percent of the total sediment P
 sed_bar_per <- sed_bar %>% 
   mutate(per_loose=(annual_looseP_ug/annualmean_sedTP_ug*100),per_redox=(annual_redoxP_ug/annualmean_sedTP_ug*100),
          per_al=(annual_AlP_ug/annualmean_sedTP_ug*100),per_org=(annual_orgP_ug/annualmean_sedTP_ug*100),per_ref=(residP_ug/annualmean_sedTP_ug*100))
 
-# FIGURE S4
-ggplot(data = sed_bar_3, aes(x = site, y = concentration_ug),color="white") +
-  geom_col(aes(fill = P_form), color="white",width = 0.7)+ coord_flip()+
-  theme_classic(base_size=18)+
+# FIGURE 4 top panel
+sedP_barplot<-
+ggplot(data = sed_bar_3, aes(x = site.f, y = concentration_ug),color="white") +
+  geom_col(aes(fill = P_form), color="white",width = 0.7)+ 
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
   xlab(NULL) + ylab(bquote('P Concentration (µg P ' *g^-1*' Dry Sediment)'))+
-  theme(legend.position = c(0.8,0.8),
-        axis.text=element_text(color="black",size=14),axis.title=element_text(size=16))+
+  theme(legend.position = c(0.8,0.7),legend.text = element_text(size=8),legend.title=element_text(size=9),
+        axis.text=element_text(color="black",size=9),axis.title=element_text(size=10),axis.text.y=element_text(angle=90,hjust=0.5))+
   scale_fill_manual(values=c("#d53e4f","gray80","#51AAAE","#3288bd","#f46d43"),labels = c("Loosely-Bound", "Refractory", "Labile Organic", "Aluminum-Bound","Redox-Sensitive"))+
   labs(fill="P Species")
 ggsave("GVL_barplot.png",width=8,height=8,units="in",dpi=300)
 
-### Part 4B - Timeseries of mobile sediment P fractions by sampling site (Figure 4, top panels) ------------------------------------------------
+### Part 4B - Timeseries of mobile sediment P fractions by sampling site (Figure 4, bottom panels) ------------------------------------------------
 # work with sed_sum
 sed_sum<-sed_sum %>% 
   mutate(site=factor(site,levels=c("1","10","4")))
@@ -446,12 +466,12 @@ redox_p<-
   theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
   ylim(0,1700)+
   geom_line(aes(x=doy,y=mean_redoxP_ug,color=site),size=1) +
-  geom_point(aes(x=doy,y=mean_redoxP_ug,size=0.7,color=site,shape=site),stroke=0.7,fill="white") +
+  geom_point(aes(x=doy,y=mean_redoxP_ug,color=site,shape=site),size=2.3) +
   geom_errorbar(aes(x=doy,ymin=mean_redoxP_ug-sem_redoxP_ug,ymax=mean_redoxP_ug+sem_redoxP_ug,color=site),width=0, position=position_dodge(0.05))+
   scale_shape_manual(values=c(19,17,15)) + scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
   geom_text(x=35,y=1640,label="Redox-Sensitive P",size=3,hjust=0)+
   xlab(" ") + ylab(bquote('P (µg ' *g^-1*' Dry Sediment)'))+
-  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8))+
+  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8),axis.text.y=element_text(angle=90,hjust=0.5))+
   theme(plot.margin=unit(c(0.1,0.1,0.1,0),"cm"))
 
 #Organic P
@@ -460,12 +480,12 @@ org_p<-
   ylim(0,450)+
   theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
   geom_line(aes(x=doy,y=mean_orgP_ug,color=site),size=1) +
-  geom_point(aes(x=doy,y=mean_orgP_ug,size=0.7,color=site,shape=site),stroke=0.7,fill="white") +
+  geom_point(aes(x=doy,y=mean_orgP_ug,color=site,shape=site),size=2.3) +
   geom_errorbar(aes(x=doy,ymin=mean_orgP_ug-sem_orgP_ug,ymax=mean_orgP_ug+sem_orgP_ug,color=site),width=0, position=position_dodge(0.05))+
   scale_shape_manual(values=c(19,17,15)) + scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
   geom_text(x=35,y=430,label="Labile Organic P",size=3,hjust=0)+
   xlab(" ") + ylab(bquote(' '))+
-  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8))+
+  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8),axis.text.y=element_text(angle=90,hjust=0.5))+
   theme(plot.margin=unit(c(0.1,0.1,0.1,-0.1),"cm"))
 
 #Al-bound P
@@ -474,34 +494,82 @@ al_p<-
   ylim(0,900)+
   theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
   geom_line(aes(x=doy,y=mean_AlP_ug,color=site),size=1) +
-  geom_point(aes(x=doy,y=mean_AlP_ug,size=0.7,color=site,shape=site),stroke=0.7,fill="white") +
+  geom_point(aes(x=doy,y=mean_AlP_ug,color=site,shape=site),size=2.3) +
   geom_errorbar(aes(x=doy,ymin=mean_AlP_ug-sem_AlP_ug,ymax=mean_AlP_ug+sem_AlP_ug,color=site),width=0, position=position_dodge(0.05))+
   scale_shape_manual(values=c(19,17,15)) + scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
   geom_text(x=35,y=850,label="Aluminum-Bound P",size=3,hjust=0)+
   xlab("Day of Year") + ylab(bquote('P (µg ' *g^-1*' Dry Sediment)'))+
-  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8))+
+  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8),axis.text.y=element_text(angle=90,hjust=0.5))+
   theme(plot.margin=unit(c(0.1,0.1,0.1,0),"cm"))
 
 #Loosely-bound P
 loose_p<-
   ggplot(data=sed_sum) +
-  ylim(0,45)+
+  ylim(0,50)+
   theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
   geom_line(aes(x=doy,y=mean_looseP_ug,color=site),size=1) +
-  geom_point(aes(x=doy,y=mean_looseP_ug,size=0.7,color=site,shape=site),stroke=0.7,fill="white") +
+  geom_point(aes(x=doy,y=mean_looseP_ug,color=site,shape=site),size=2.3) +
   geom_errorbar(aes(x=doy,ymin=mean_looseP_ug-sem_looseP_ug,ymax=mean_looseP_ug+sem_looseP_ug,color=site),width=0, position=position_dodge(0.05))+
-  geom_point(aes(x=doy,y=mean_looseP_ug,size=0.7,color=site,shape=site),stroke=0.7,fill="white") +
+  geom_point(aes(x=doy,y=mean_looseP_ug,color=site,shape=site),size=1) +
   scale_shape_manual(values=c(19,17,15)) + scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
-  geom_text(x=35,y=42,label="Loosely-Bound P",size=3,hjust=0)+
-  xlab("Day of Year") + ylab(bquote(''))+
-  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8))+
+  geom_text(x=35,y=47,label="Loosely-Bound P",size=3,hjust=0)+
+  xlab("Day of Year") + ylab(" ")+
+  theme(legend.position = "none",axis.text=element_text(color="black",size=8),axis.title=element_text(size=8),axis.text.y=element_text(angle=90,hjust=0.5))+
   theme(plot.margin=unit(c(0.1,0.1,0.1,-0.1),"cm"))
 
-windows(height=3.5,width=5)  
-plotfull_p<-grid.arrange(redox_p, org_p, al_p, loose_p,nrow=2) #need to name the grid.arrange to use in ggsave
-ggsave("GVL_2020_SedimentP.png", plotfull_p, width=5, height=3.5, units="in", dpi=300)
 
-### Part 4C - CoDA of sediment P composition to understand variation over space and time (Figure 4, bottom panels) -----------------------------
+#windows(height=3.5,width=5)  
+plotfull_p<-grid.arrange(sedP_barplot, site_legend,
+                         redox_p, org_p,al_p, loose_p,
+                         layout_matrix = rbind(c(1,1),
+                                               c(1,1),
+                                               c(1,1),
+                                               c(1,1),
+                                               c(2,2),
+                                               c(3,4),
+                                               c(3,4),
+                                               c(3,4),
+                                               c(5,6),
+                                               c(5,6),
+                                               c(5,6))) 
+ggsave("Figure4Updated.png", plotfull_p, width=6, height=9, units="in", dpi=300)
+
+
+### Part 4C - Timeseries of sediment total P by sampling site (Figure S5)
+# Total P
+sed_tp_whole<-read.csv("GVL_SedTP_Tidy.csv")
+sedTP_sum<-sed_tp_whole %>% 
+  mutate(site.f=as.factor(site)) %>% 
+  group_by(site.f, month) %>% 
+  mutate(mean_tp=mean(TP_ug), sem_tp=(sd(TP_ug))/sqrt(2)) %>% 
+  select(month, doy, site.f, mean_tp, sem_tp) %>% 
+  slice(n=1) %>% 
+  ungroup()
+
+total_sedP<-
+ggplot(data=sedTP_sum, aes(x=doy, y=mean_tp, group=site.f))+
+  ylim(0,2600)+
+  geom_point(aes(color=site.f, shape=site.f), size=2)+
+  geom_line(aes(color=site.f), size=1)+
+  geom_errorbar(aes(x=doy,ymin=mean_tp-sem_tp,ymax=mean_tp+sem_tp,color=site.f),width=0, position=position_dodge(0.05))+
+  scale_shape_manual(values=c(15,17,19),
+                     name=" ",
+                     breaks=c("4","10","1"),
+                     labels=c("Deep","Intermediate Depth","Shallow")) + 
+  scale_color_manual(values=c("#E7298A","#D95F02","#1B9E77"),
+                    name=" ",
+                    breaks=c("4","10","1"),
+                    labels=c("Deep","Intermediate Depth","Shallow"))+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  theme(legend.position = "top",axis.text=element_text(color="black",size=9),axis.title=element_text(size=10))+
+  theme(plot.margin=unit(c(0.1,0.1,0.1,-0.1),"cm"))+
+  xlab("Day of Year") + ylab(bquote('Sediment Total P (µg ' *g^-1*' Dry Sediment)'))
+
+site_legend<-get_legend(total_sedP)
+
+ggsave("Sediment_TP_timeseries.png", total_sedP, width=4, height=4, units="in", dpi=300)
+
+### Part 4D - CoDA of sediment P composition to understand variation over space and time (Figure 5) -----------------------------
 # for compositional data analysis - will need a dataframe with the mean (over replicates) concentration of P fractions
 # loosely-bound, redox-sensitive, al-bound, labile organic P ---- use sed_sum
 
@@ -527,7 +595,7 @@ View(core_CLR)# CLR values in columns 8-11
 core.rda<-rda(core_CLR[,8:11],scale=FALSE) #selects all rows but only columns 8-11, scale=FALSE uses covariance matrix
 summary(core.rda) # PC1 explains 76.77% of variation, PC2 explains 14.35% (sum=91.11%)
 
-# PCA Biplot (Figure 2)
+# PCA Biplot 
 with(CoDA_df,levels(site))
 brewer.pal(3,"Dark2")
 col_10<-"#D95F02" #orange
@@ -563,7 +631,7 @@ text(-0.65,-0.05,labels="Loosely-
      Bound",cex=0.8)
 dev.off()
 
-### PART 5 - SCALING P FLUXES ACROSS THE LAKEBED TO ESTIMATE LOAD (Figure 5, Table 2) AND SITE MAP (Figure 1) --------------------------------------------------------
+### PART 5 - SCALING P FLUXES ACROSS THE LAKEBED TO ESTIMATE LOAD (Figure 6, Table 2) AND SITE MAP (Figure 1) --------------------------------------------------------
 ### Part 5a. Processing shapefile of bathymetric data ------------------------------------------------------------------------------------------
 
 # Step 1 - Determine the area of various depth contours across the lakebed
@@ -666,7 +734,7 @@ GVL_SiteMap<-ggdraw() +
 ggsave(filename = "GVL_SiteMap.png", plot = GVL_SiteMap,
        width = 3.5, height = 5, dpi = 300)
 
-### Part 5C - P load estimation (Figure 5, Table 2) -------------------------------------------------------------------------------------------
+### Part 5C - P load estimation (Figure 6, Table 2) -------------------------------------------------------------------------------------------
 # READ IN DATA: perimeter and areas of representative depth contours (calculated in Part 5A)
 sed_area<-read.csv("GVL_SedimentAreaCALC.csv")
 # Calculate the area of sediment for each area of interest. Imagine the area is a ribbon of sediment wrapping around the lakebed. It is a trapezoid.
@@ -717,7 +785,7 @@ load_sum2<-load_sum %>%
   select(month,doy,net_load_kgday,net_load_error) %>% 
   slice(n=1)
 
-# Daily P Load Estimation (Figure 5)
+# Daily P Load Estimation (Figure 6)
 load_fig<-ggplot()+
   geom_bar(data=load_sum,aes(x=doy, y=mean_load_kgday, fill=site.f), 
            stat="identity", width=30, position=position_dodge2(preserve="single",padding=0.1))+
@@ -734,3 +802,69 @@ load_fig<-ggplot()+
   theme(legend.position=c(0.3,0.83),legend.text=element_text(size=9),legend.title=element_text(size=9,face="bold"),legend.key.size=unit(0.3,"cm"))
 
 ggsave("GVL_LoadEstimation.png",load_fig,width=3.5,height=3.25,units="in",dpi=300)
+
+
+### Sediment physical data (Table S5)-----------------------
+phys<-read.csv("GVL_SedimentPhys_Tidy.csv")
+View(phys)
+
+sum_phys<-phys %>% 
+  filter(month!="July") %>% 
+  filter(sample_id!="C20-041-298-4-B" & sample_id!="C20-041-298-1-B"& sample_id!="C20-041-298-10-A") %>% 
+  mutate(month=factor(month,levels=c("February","April","June","August","October"))) %>% 
+  mutate(site.f=factor(site,levels=c("1","10","4"))) %>% 
+  mutate(n_rep = case_when(.$month %in% c("February","April","June","August")~3,
+                           .$month %in% c("October")~2)) %>% 
+  group_by(month, site.f) %>% 
+  mutate(sem_OM=(sd(OM_per))/sqrt(n_rep),mean_OM=mean(OM_per),
+         sem_MC=(sd(MCfrac))/sqrt(n_rep),mean_MC=mean(MCfrac),
+         sem_BD=(sd(bd))/sqrt(n_rep),mean_bd=mean(bd))%>% 
+  select(year,month,doy,site.f,n_rep,mean_OM, sem_OM, mean_MC, sem_MC, mean_bd, sem_BD) %>% 
+  slice(n=1) %>% 
+  ungroup()
+
+site_sum_phys<-phys %>% 
+  filter(month!="July") %>% 
+  filter(sample_id!="C20-041-298-4-B" & sample_id!="C20-041-298-1-B"& sample_id!="C20-041-298-10-A") %>% 
+  mutate(month=factor(month,levels=c("February","April","June","August","October"))) %>% 
+  mutate(site.f=factor(site,levels=c("1","10","4"))) %>% 
+  mutate(n_rep = case_when(.$month %in% c("February","April","June","August")~3,
+                           .$month %in% c("October")~2)) %>% 
+  group_by(site.f) %>% 
+  mutate(sem_OM=(sd(OM_per))/sqrt(n_rep),mean_OM=mean(OM_per),
+         sem_MC=(sd(MCfrac))/sqrt(n_rep),mean_MC=mean(MCfrac),
+         sem_BD=(sd(bd))/sqrt(n_rep),mean_bd=mean(bd))%>% 
+  select(year,site.f,mean_OM, sem_OM, mean_MC, sem_MC, mean_bd, sem_BD) %>% 
+  slice(n=1) %>% 
+  ungroup()
+
+write.csv(sum_phys, "sed_phys_SItable.csv",row.names = FALSE)
+
+ggplot(data=sum_phys, aes(x=doy, y=mean_OM, group=site.f))+
+  geom_line(aes(color=site.f, alpha=0.5), size=1.1)+
+  geom_point(aes(color=site.f, shape=site.f), size=4)+
+  geom_errorbar(aes(x=doy,ymin=mean_OM-sem_OM,ymax=mean_OM+sem_OM,color=site.f),width=0, position=position_dodge(0.05))+
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
+  scale_shape_manual(values=c(16,17,15))+
+  ylim(0,17)+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  xlab("Day of Year")+ylab(bquote("OM (%)")) +theme(axis.text=element_text(color="black",size=10),axis.title=element_text(size=12), legend.position="right")
+
+ggplot(data=sum_phys, aes(x=doy, y=mean_bd, group=site.f))+
+  geom_line(aes(color=site.f, alpha=0.5), size=1.1)+
+  geom_point(aes(color=site.f, shape=site.f), size=4)+
+  geom_errorbar(aes(x=doy,ymin=mean_bd-sem_BD,ymax=mean_bd+sem_BD,color=site.f),width=0, position=position_dodge(0.05))+
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
+  scale_shape_manual(values=c(16,17,15))+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  xlab("Day of Year")+ylab(bquote("Bulk Density (g/cm3)")) +theme(axis.text=element_text(color="black",size=10),axis.title=element_text(size=12), legend.position="right")
+
+ggplot(data=sum_phys, aes(x=doy, y=mean_MC, group=site.f))+
+  geom_line(aes(color=site.f, alpha=0.5), size=1.1)+
+  geom_point(aes(color=site.f, shape=site.f), size=4)+
+  geom_errorbar(aes(x=doy,ymin=mean_MC-sem_MC,ymax=mean_MC+sem_MC,color=site.f),width=0, position=position_dodge(0.05))+
+  scale_color_manual(values=c("#1B9E77","#D95F02","#E7298A"))+
+  scale_shape_manual(values=c(16,17,15))+
+  theme_linedraw()+theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  xlab("Day of Year")+ylab(bquote("MC")) +theme(axis.text=element_text(color="black",size=10),axis.title=element_text(size=12), legend.position="right")
+
